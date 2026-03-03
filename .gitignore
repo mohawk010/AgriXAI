@@ -1,0 +1,30 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Large model files (too big for GitHub)
+*.keras
+*.h5
+*.weights
+*.ckpt
+*.pb
+
+# Dataset images (1.33 GB — host on Kaggle/Drive instead)
+**/train/
+**/valid/
+**/test/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
