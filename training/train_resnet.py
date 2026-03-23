@@ -32,8 +32,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
         running_loss += loss.item() * images.size(0)
         _, preds = outputs.max(1)
-        _, true = labels.max(1)
-        correct += (preds == true).sum().item()
+        correct += (preds == labels).sum().item()
         total += images.size(0)
 
     return running_loss / total, correct / total
@@ -55,10 +54,9 @@ def validate(model, loader, criterion, device):
 
             running_loss += loss.item() * images.size(0)
             _, preds = outputs.max(1)
-            _, true = labels.max(1)
-            correct += (preds == true).sum().item()
+            correct += (preds == labels).sum().item()
             total += images.size(0)
-            y_true.extend(true.cpu().tolist())
+            y_true.extend(labels.cpu().tolist())
             y_pred.extend(preds.cpu().tolist())
 
     avg_loss = running_loss / total
