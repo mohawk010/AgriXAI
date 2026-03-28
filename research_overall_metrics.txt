@@ -1,0 +1,4 @@
+--- Global Performance Metrics ---
+Accuracy: 0.9935
+Macro F1: 0.9933
+Weighted F1: 0.9935

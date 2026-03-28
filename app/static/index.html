@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriXAI — Plant Health Intelligence</title>
+  <meta name="description" content="AI-powered plant disease detection using deep learning, Grad-CAM heatmaps, DCT frequency analysis, and Gemini AI insights." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header class="site-header">
+    <div class="logo">
+      <i class="ph-fill ph-leaf logo-icon"></i>
+      <span class="logo-text">Agri<span class="accent">XAI</span></span>
+    </div>
+    <div class="header-tagline">Plant Health Intelligence · Deep Learning + Explainable AI</div>
+    <div class="header-badges">
+      <span class="badge">ResNet50 · 99.45% Acc</span>
+      <span class="badge">38 Disease Classes</span>
+      <span class="badge badge-green">Grad-CAM · DCT · Gemini</span>
+    </div>
+  </header>
+
+  <!-- ═══════════════════ MAIN 2-COLUMN PANELS ═══════════════════ -->
+  <main class="panels-wrapper">
+
+    <!-- ── LEFT PANEL: Upload / Camera ── -->
+    <section class="panel panel-left" id="panel-upload">
+      <div class="panel-header">
+        <i class="ph ph-camera panel-icon"></i>
+        <h2>Image Input</h2>
+      </div>
+
+      <!-- Drop zone -->
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-inner" id="dropzone-inner">
+          <i class="ph-fill ph-image upload-icon"></i>
+          <p class="drop-title">Drop leaf image here</p>
+          <p class="drop-sub">or click to browse files</p>
+          <input type="file" id="file-input" accept="image/*" hidden />
+          <button class="btn btn-outline" id="browse-btn">Browse Files</button>
+        </div>
+        <!-- Preview -->
+        <div class="preview-container" id="preview-container" hidden>
+          <img id="preview-img" alt="Leaf preview" />
+          <div class="preview-overlay">
+            <button class="btn btn-ghost btn-sm" id="change-img-btn"><i class="ph ph-arrows-clockwise"></i> Change</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera -->
+      <div class="divider"><span>or</span></div>
+
+      <div class="camera-section">
+        <button class="btn btn-secondary" id="camera-btn">
+          <i class="ph ph-video-camera btn-icon"></i> Use Camera
+        </button>
+        <div class="camera-container" id="camera-container" hidden>
+          <video id="camera-video" autoplay playsinline></video>
+          <div class="camera-controls">
+            <button class="btn btn-capture" id="capture-btn"><i class="ph-fill ph-aperture"></i> Capture</button>
+            <button class="btn btn-ghost btn-sm" id="close-camera-btn"><i class="ph ph-x"></i> Close</button>
+          </div>
+        </div>
+        <canvas id="capture-canvas" hidden></canvas>
+      </div>
+
+      <!-- Analyse button -->
+      <button class="btn btn-primary btn-analyse" id="analyse-btn" disabled>
+        <i class="ph ph-microscope btn-icon"></i>
+        <span id="analyse-btn-label">Analyse Plant</span>
+      </button>
+
+      <!-- Confidence result card (shown after analysis) -->
+      <div class="result-card" id="result-card" hidden>
+        <div class="result-class" id="result-class">—</div>
+        <div class="confidence-bar-wrapper">
+          <div class="confidence-bar-track">
+            <div class="confidence-bar-fill" id="confidence-bar"></div>
+          </div>
+          <span class="confidence-pct" id="confidence-pct">—</span>
+        </div>
+        <div class="top5-list" id="top5-list"></div>
+      </div>
+    </section>
+
+    <!-- ── RIGHT PANEL: Heatmaps ── -->
+    <section class="panel panel-right" id="panel-heatmaps">
+      <div class="panel-header">
+        <i class="ph ph-brain panel-icon"></i>
+        <h2>Analysis Heatmaps</h2>
+      </div>
+
+      <div class="heatmaps-placeholder" id="heatmaps-placeholder">
+        <i class="ph-fill ph-chart-line-up placeholder-icon"></i>
+        <p>Heatmaps will appear here after analysis</p>
+      </div>
+
+      <div class="heatmaps-content" id="heatmaps-content" hidden>
+        <!-- Grad-CAM -->
+        <div class="heatmap-block">
+          <div class="heatmap-label">
+            <span class="heatmap-badge grad-cam-badge">Grad-CAM</span>
+            <span class="heatmap-subtitle">Spatial attention — where the model looked</span>
+          </div>
+          <img id="gradcam-img" class="heatmap-img" alt="Grad-CAM heatmap" />
+        </div>
+
+        <!-- DCT Spectrum -->
+        <div class="heatmap-block">
+          <div class="heatmap-label">
+            <span class="heatmap-badge dct-badge">DCT Spectrum</span>
+            <span class="heatmap-subtitle">Frequency domain — hidden colour patterns</span>
+          </div>
+          <img id="dct-spectrum-img" class="heatmap-img" alt="DCT spectrum" />
+        </div>
+
+        <!-- DCT Band Energy -->
+        <div class="heatmap-block">
+          <div class="heatmap-label">
+            <span class="heatmap-badge band-badge">Frequency Bands</span>
+            <span class="heatmap-subtitle">Energy distribution across spatial frequencies</span>
+          </div>
+          <img id="dct-band-img" class="heatmap-img" alt="Frequency band distribution" />
+        </div>
+      </div>
+
+      <!-- Loading spinner for heatmap panel -->
+      <div class="spinner-wrapper" id="heatmap-spinner" hidden>
+        <div class="spinner"></div>
+        <p class="spinner-label">Running deep analysis…</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════ BOTTOM PANEL: AI Analysis ═══════════════════ -->
+  <section class="panel panel-bottom" id="panel-ai">
+    <div class="panel-header">
+      <i class="ph ph-sparkle panel-icon"></i>
+      <h2>AI Plant Health Report</h2>
+      <span class="powered-by">powered by Gemini 2.5 Flash</span>
+    </div>
+
+    <div class="ai-placeholder" id="ai-placeholder">
+      <i class="ph-fill ph-magic-wand placeholder-icon"></i>
+      <p>Upload a plant image and click <strong>Analyse Plant</strong> to get a comprehensive AI-generated health report.</p>
+    </div>
+
+    <div class="ai-spinner-wrapper" id="ai-spinner" hidden>
+      <div class="spinner"></div>
+      <p class="spinner-label">Gemini is analysing your plant…</p>
+    </div>
+
+    <div class="ai-content" id="ai-content" hidden></div>
+  </section>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

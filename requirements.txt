@@ -8,3 +8,13 @@ pandas
 seaborn
 jupyter
 ipython
+
+# ── Web UI (FastAPI backend) ──────────────────────────────────
+fastapi
+uvicorn[standard]
+python-multipart
+Pillow
+scipy
+google-generativeai
+python-dotenv
+tensorflow
