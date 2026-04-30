@@ -100,6 +100,24 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Run with Docker (Recommended)
+You can run the entire application via Docker. Make sure Docker Desktop is running, then execute:
+
+```bash
+# Start the application in detached mode
+docker-compose up -d
+
+# Stop the application
+docker-compose down
+```
+The API and frontend will be available at `http://localhost:8000`.
+
+### Run Locally via PowerShell
+Open PowerShell as administrator (if needed) and run:
+```powershell
+.\start_app.ps1
+```
+
 ### Run the Notebook
 Open and run `New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/Train_plant_disease.ipynb` in Jupyter or VS Code. The notebook covers:
 1. Data loading & preprocessing
@@ -109,30 +127,12 @@ Open and run `New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(A
 5. Grad-CAM visualizations
 6. Model comparison plots
 
-### Train ResNet50 via Script
-```bash
-python training/train_resnet.py \
-  --data-dir "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)" \
-  --output-dir artifacts \
-  --epochs 10 \
-  --batch-size 32
-```
-
-### Compare Models
-```bash
-python scripts/compare_models.py \
-  --data-dir "New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)" \
-  --model1 artifacts/resnet50_best.pth --model1-type resnet50 \
-  --model2 artifacts/trained_plant_disease_model.keras --model2-type other \
-  --output-dir artifacts
-```
-
 ---
 
 ## Tech Stack
 
-- **TensorFlow / Keras** — CNN & ResNet50 training
-- **PyTorch / torchvision** — ResNet50 model module
+- **TensorFlow / Keras** — CNN & ResNet50 training & inference
+- **FastAPI** — High-performance async web backend
 - **scikit-learn** — Confusion matrix, classification report
 - **matplotlib / seaborn** — Visualizations
 - **OpenCV** — Image processing for Grad-CAM

@@ -111,7 +111,7 @@ p.paragraph_format.space_after  = Pt(10)
 r = p.add_run(
     'Department of Computer Science and Engineering\n'
     'AgriXAI Research Project\n'
-    'email@domain.com'
+    'mohit.verma27104@gmail.com'
 )
 set_font(r, size=10, italic=True)
 

@@ -6,16 +6,24 @@ from __future__ import annotations
 
 import base64
 import io
+import logging
 
 import cv2
 import numpy as np
 
+logger = logging.getLogger("agrixai.gradcam")
 
 LAST_CONV_LAYER = "conv5_block3_out"
 
 
+_gradcam_cache: dict = {}
+
 def _make_gradcam_model(model):
-    """Build a 2-output model: (last_conv_output, final_predictions)."""
+    """Build a 2-output model: (last_conv_output, final_predictions). Cache it to avoid rebuilding."""
+    key = id(model)
+    if key in _gradcam_cache:
+        return _gradcam_cache[key]
+
     import tensorflow as tf
 
     try:
@@ -45,6 +53,7 @@ def _make_gradcam_model(model):
             ],
         )
 
+    _gradcam_cache[key] = grad_model
     return grad_model
 
 
@@ -63,6 +72,7 @@ def generate_gradcam(
     """
     import tensorflow as tf
 
+    logger.info("Building Grad-CAM model for layer '%s'...", LAST_CONV_LAYER)
     grad_model = _make_gradcam_model(model)
 
     with tf.GradientTape() as tape:
@@ -80,6 +90,9 @@ def generate_gradcam(
     heatmap = tf.maximum(heatmap, 0) / (tf.math.reduce_max(heatmap) + 1e-8)
     heatmap = heatmap.numpy()
 
+    if np.max(heatmap) < 1e-6:
+        logger.warning("Grad-CAM heatmap is near-zero — model may lack confidence in this prediction.")
+
     # ── Resize heatmap to original image size ─────────────────────────────
     h, w = original_rgb.shape[:2]
     heatmap_resized = cv2.resize(heatmap, (w, h))
@@ -94,4 +107,5 @@ def generate_gradcam(
     _, buffer = cv2.imencode(".png", superimposed)
     b64 = base64.b64encode(buffer.tobytes()).decode("utf-8")
 
+    logger.info("Grad-CAM heatmap generated (%dx%d)", w, h)
     return b64, heatmap_resized

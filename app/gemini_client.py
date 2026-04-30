@@ -5,13 +5,22 @@ to produce a humanized plant health report.
 from __future__ import annotations
 
 import base64
-import os
-import sys
+import logging
 from pathlib import Path
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+logger = logging.getLogger("agrixai.gemini")
 
 ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(ROOT))
-from utils.prevention_tips import format_tips  # noqa: E402
+import importlib.util
+_tips_spec = importlib.util.spec_from_file_location(
+    "prevention_tips", str(ROOT / "utils" / "prevention_tips.py")
+)
+_tips_mod = importlib.util.module_from_spec(_tips_spec)
+_tips_spec.loader.exec_module(_tips_mod)
+format_tips = _tips_mod.format_tips
+
+from app.config import settings
 
 
 def _build_prompt(
@@ -81,10 +90,10 @@ def get_analysis(
     Send data to Gemini and return the humanized markdown report.
     Falls back to prevention_tips if no API key is set.
     """
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+    api_key = settings.gemini_api_key
 
     if not api_key:
-        # Graceful fallback — use local tips
+        logger.warning("GEMINI_API_KEY not configured. Falling back to local offline tips.")
         tips = format_tips(predicted_class)
         return (
             f"## ⚠️ Gemini API Key Not Configured\n\n"
@@ -97,7 +106,7 @@ def get_analysis(
         import google.generativeai as genai  # type: ignore
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel(settings.gemini_model)
 
         prompt = _build_prompt(predicted_class, confidence, top5, dct_stats)
 
@@ -115,13 +124,41 @@ def get_analysis(
         gradcam_pil = PIL.Image.open(_io.BytesIO(gradcam_bytes)).convert("RGB")
         parts.append(gradcam_pil)
 
-        response = model.generate_content(parts)
+        logger.info("Sending request to Gemini interface...")
+        
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_exponential(multiplier=1, min=1, max=10),
+            retry=retry_if_exception_type(Exception),
+            before_sleep=lambda retry_state: logger.warning(
+                "Gemini retry attempt %d after error...", retry_state.attempt_number
+            ),
+        )
+        def _call_gemini(model, parts):
+            return model.generate_content(parts, request_options={"timeout": 30})
+
+        response = _call_gemini(model, parts)
+        
+        # Check if the response was blocked by safety filters
+        if not response.parts:
+            logger.warning("Gemini response was blocked or empty.")
+            tips = format_tips(predicted_class)
+            return (
+                f"## ⚠️ Gemini Analysis Blocked\n\n"
+                f"The AI analysis was blocked by safety filters.\n\n"
+                f"**Predicted:** {predicted_class} ({confidence*100:.1f}% confidence)\n\n"
+                f"### Agronomic Tips (Local Database)\n{tips}"
+            )
+
+        logger.info("Gemini response received.")
         return response.text
 
     except Exception as exc:
+        logger.exception("Failed to connect to Gemini API: %s", exc)
         tips = format_tips(predicted_class)
         return (
-            f"## ⚠️ Gemini Error: {exc}\n\n"
+            f"## ⚠️ AI Analysis Temporarily Unavailable\n\n"
             f"**Predicted:** {predicted_class} ({confidence*100:.1f}% confidence)\n\n"
-            f"### Agronomic Tips (Local Database)\n{tips}"
+            f"### Agronomic Tips (Local Database)\n{tips}\n\n"
+            f"_The AI analysis service is currently unavailable. Please try again later._"
         )

@@ -6,7 +6,8 @@ from pathlib import Path
 # Fix the seed for reproducibility specifically for scientific evaluation
 random.seed(42)
 
-BASE_DIR = Path(r"D:\plant disease dataset\New Plant Diseases Dataset(Augmented)\New Plant Diseases Dataset(Augmented)")
+ROOT = Path(__file__).parent
+BASE_DIR = ROOT / "New Plant Diseases Dataset(Augmented)" / "New Plant Diseases Dataset(Augmented)"
 VALID_DIR = BASE_DIR / "valid"
 TEST_DIR = BASE_DIR / "test"
 
@@ -39,14 +40,31 @@ for class_idx, class_dir in enumerate(VALID_DIR.iterdir()):
     split_idx = len(images) // 2
     test_images = images[:split_idx]
     
-    # Move files to test directory
+    # Copy files to test directory
     for img_path in test_images:
         dest_path = test_class_dir / img_path.name
-        shutil.move(str(img_path), str(dest_path))
+        shutil.copy2(str(img_path), str(dest_path))
         
     total_moved += len(test_images)
     total_remained += (len(images) - len(test_images))
 
+    class_name = class_dir.name
+    valid_count = len(images) - len(test_images)
+    test_count = len(test_images)
+    if abs(valid_count - test_count) > 1:
+        print(f"  WARNING: {class_name} — imbalanced split: valid={valid_count}, test={test_count}")
+
 print("Split Complete!")
 print(f"New Valid Set: {total_remained} images")
 print(f"New Test Set:  {total_moved} images")
+
+import json
+manifest = {
+    "seed": 42,
+    "total_valid": total_remained,
+    "total_test": total_moved,
+    "timestamp": str(Path(__file__).stat().st_mtime),
+}
+with open(BASE_DIR / "split_manifest.json", "w") as f:
+    json.dump(manifest, f, indent=2)
+print(f"-> Saved split manifest to {BASE_DIR / 'split_manifest.json'}")

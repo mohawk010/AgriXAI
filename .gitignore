@@ -18,9 +18,13 @@ __pycache__/
 *.pb
 
 # Dataset images (1.33 GB — host on Kaggle/Drive instead)
+# Exclude the entire PlantVillage dataset directory by name
+New Plant Diseases Dataset*/
+# Safety nets for train/valid splits anywhere else
 **/train/
 **/valid/
-**/test/
+# Exclude ONLY the sample images subfolder inside our pytest suite (not the suite root)
+test/test/
 
 # OS files
 .DS_Store

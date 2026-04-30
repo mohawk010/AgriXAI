@@ -1,0 +1,18 @@
+services:
+  agrixai:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/resnet50_best.keras:/app/models/resnet50_best.keras:ro"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - MODEL_PATH=/app/models/resnet50_best.keras
+    env_file:
+      - app/.env
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+    restart: unless-stopped

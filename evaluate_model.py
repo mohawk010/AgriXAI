@@ -10,7 +10,8 @@ import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-BASE_DIR = Path(r"D:\plant disease dataset\New Plant Diseases Dataset(Augmented)\New Plant Diseases Dataset(Augmented)")
+ROOT = Path(__file__).parent
+BASE_DIR = ROOT / "New Plant Diseases Dataset(Augmented)" / "New Plant Diseases Dataset(Augmented)"
 MODEL_PATH = BASE_DIR / "resnet50_best.keras"
 TEST_DIR = BASE_DIR / "test"
 
@@ -53,8 +54,8 @@ print("\nGenerating Research Artifacts...")
 # 1. Classification Report
 report = classification_report(y_true, y_pred, target_names=class_names, output_dict=True)
 df_report = pd.DataFrame(report).transpose()
-df_report.to_csv('research_classification_report.csv')
-print("-> Saved research_classification_report.csv")
+df_report.to_csv(str(ROOT / 'research_classification_report.csv'))
+print(f"-> Saved {ROOT / 'research_classification_report.csv'}")
 
 # 2. Confusion Matrix Plot
 cm = confusion_matrix(y_true, y_pred)
@@ -66,20 +67,20 @@ plt.ylabel('True Label', fontsize=14)
 plt.xticks(rotation=90, fontsize=8)
 plt.yticks(rotation=0, fontsize=8)
 plt.tight_layout()
-plt.savefig('research_confusion_matrix.png', dpi=300)
+plt.savefig(str(ROOT / 'research_confusion_matrix.png'), dpi=300)
 plt.close()
-print("-> Saved research_confusion_matrix.png")
+print(f"-> Saved {ROOT / 'research_confusion_matrix.png'}")
 
 # 3. Overall Metrics
 accuracy = report['accuracy']
 macro_f1 = report['macro avg']['f1-score']
 weighted_f1 = report['weighted avg']['f1-score']
-with open('research_overall_metrics.txt', 'w') as f:
+with open(ROOT / 'research_overall_metrics.txt', 'w') as f:
     f.write(f"--- Global Performance Metrics ---\n")
     f.write(f"Accuracy: {accuracy:.4f}\n")
     f.write(f"Macro F1: {macro_f1:.4f}\n")
     f.write(f"Weighted F1: {weighted_f1:.4f}\n")
-print("-> Saved research_overall_metrics.txt")
+print(f"-> Saved {ROOT / 'research_overall_metrics.txt'}")
 
 # 4. ROC Curves
 y_true_bin = label_binarize(y_true, classes=range(num_classes))
@@ -99,8 +100,8 @@ plt.title('Receiver Operating Characteristic (Subset of Classes)', fontsize=14)
 plt.legend(loc="lower right", fontsize=8)
 plt.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig('research_roc_curves.png', dpi=300)
+plt.savefig(str(ROOT / 'research_roc_curves.png'), dpi=300)
 plt.close()
-print("-> Saved research_roc_curves.png")
+print(f"-> Saved {ROOT / 'research_roc_curves.png'}")
 
 print("\nAll research metrics have been successfully generated!")

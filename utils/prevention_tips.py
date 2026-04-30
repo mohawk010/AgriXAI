@@ -1,14 +1,11 @@
 """
 prevention_tips.py
 ------------------
-Maps each of the 38 dataset class names (as returned by torchvision.datasets.ImageFolder)
-to structured agronomic advice: symptoms, causes, prevention, and treatment.
-
 Usage:
-    from utils.prevention_tips import get_tips
+    from utils.prevention_tips import PREVENTION_TIPS, format_tips
 
-    tips = get_tips("Tomato___Late_blight")
-    print(tips["prevention"])
+    tips_text = format_tips("Tomato___Late_blight")
+    print(tips_text)
 """
 
 from typing import Dict, Any, Optional

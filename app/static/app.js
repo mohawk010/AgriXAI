@@ -78,6 +78,10 @@ function loadFilePreview(file) {
     showToast('Please select a valid image file.', 'error');
     return;
   }
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('Image too large — maximum 20 MB.', 'error');
+    return;
+  }
   currentFile = file;
   const reader = new FileReader();
   reader.onload = e => setPreview(e.target.result);
@@ -186,7 +190,7 @@ async function runAnalysis() {
   formData.append('file', currentFile);
 
   try {
-    const res = await fetch('/predict', { method: 'POST', body: formData });
+    const res = await fetch('/api/v1/predict', { method: 'POST', body: formData });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
@@ -232,10 +236,15 @@ function renderResults(data) {
   data.top5.forEach((item, idx) => {
     const div = document.createElement('div');
     div.className = `top5-item${idx === 0 ? ' top1' : ''}`;
-    div.innerHTML = `
-      <span>${formatClassName(item.class)}</span>
-      <span>${(item.probability * 100).toFixed(2)}%</span>
-    `;
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = formatClassName(item.class);
+    
+    const probSpan = document.createElement('span');
+    probSpan.textContent = `${(item.probability * 100).toFixed(2)}%`;
+    
+    div.appendChild(nameSpan);
+    div.appendChild(probSpan);
     top5List.appendChild(div);
   });
 
@@ -249,10 +258,10 @@ function renderResults(data) {
   /* ── AI report (bottom panel) ─────────────────────────────── */
   hide(aiSpinner);
   // Render markdown using marked.js
-  if (typeof marked !== 'undefined') {
-    aiContent.innerHTML = marked.parse(data.ai_analysis || '');
+  if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+    aiContent.innerHTML = DOMPurify.sanitize(marked.parse(data.ai_analysis || ''));
   } else {
-    // Fallback: plain text with basic newline rendering
+    // Safe fallback: plain text only
     aiContent.innerHTML = `<pre style="white-space:pre-wrap;">${escapeHtml(data.ai_analysis)}</pre>`;
   }
   show(aiContent);
@@ -274,5 +283,9 @@ function escapeHtml(str) {
   return (str || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
+
+window.addEventListener('beforeunload', stopCamera);

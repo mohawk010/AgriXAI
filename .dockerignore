@@ -1,0 +1,48 @@
+# Git and Docker
+.git/
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Environment and Secrets
+.env
+.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+
+# Project Dataset and Weights (We selectively copy what we need)
+New Plant Diseases Dataset(Augmented)/*
+!New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)
+!New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/resnet50_best.keras
+*plant_disease_model.keras
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Pytest
+.pytest_cache/
+tests/
+
+# OS and temporary files
+.DS_Store
+Thumbs.db
+*.log
+*.sqlite
+*.db
+
+# Docs
+*.docx
+*.pptx
+*.xlsx
+.vscode/
